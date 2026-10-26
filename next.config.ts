@@ -2,8 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "export",
-  basePath: "/framer-player",
-  assetPrefix: "/framer-player/",
+  basePath: "/frame-player",
+  assetPrefix: "/frame-player/",
   images: {
     unoptimized: true,
   },
