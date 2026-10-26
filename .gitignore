@@ -10,6 +10,10 @@
 
 # production
 /dist
+/.next
+/.swc
+/out
+*.tsbuildinfo
 
 # misc
 .DS_Store
@@ -19,8 +23,7 @@
 .env.production.local
 /.nx
 /.nx/cache
-/.vscode/*
-!/.vscode/extensions.json
+/.vscode
 .idea
 
 npm-debug.log*

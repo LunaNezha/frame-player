@@ -1,21 +1,17 @@
 {
-  "short_name": "Ionic App",
-  "name": "My Ionic App",
+  "short_name": "FRAME",
+  "name": "FRAME | React & Next.js Custom Video Player",
+  "description": "Customizable MP4, WebM, and HLS playback for React and Next.js.",
   "icons": [
     {
-      "src": "assets/icon/favicon.png",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "assets/icon/icon.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff"
+  "theme_color": "#090a0e",
+  "background_color": "#090a0e"
 }

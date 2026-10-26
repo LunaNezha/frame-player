@@ -1,0 +1,46 @@
+@import "../components/player/player.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-zinc-950 text-white antialiased;
+  }
+
+  button,
+  select,
+  input {
+    @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-400;
+  }
+
+  input[type="range"] {
+    @apply cursor-pointer accent-blue-500;
+  }
+}
+
+@layer components {
+  .demo-shell {
+    background: radial-gradient(
+        ellipse at 50% 35%,
+        rgb(93 92 151 / 0.09),
+        transparent 60%
+      ),
+      #090a0e;
+  }
+  .demo-kbd {
+    display: inline-flex;
+    min-width: 25px;
+    height: 25px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    border-radius: 5px;
+    padding: 0 6px;
+    font-family: inherit;
+    font-size: 10px;
+    color: #c8ccdb;
+    background: rgb(255 255 255 / 0.025);
+  }
+}
