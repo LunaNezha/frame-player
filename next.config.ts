@@ -1,9 +1,9 @@
-/** @type {import('next').NextConfig} */
+import type { NextConfig } from "next";
 
-const nextConfig = {
+const nextConfig: NextConfig = {
   output: "export",
-  basePath: "/frame-player",
-  assetPrefix: "/frame-player/",
+  basePath: "/framer-player",
+  assetPrefix: "/framer-player/",
   images: {
     unoptimized: true,
   },
