@@ -53,7 +53,7 @@ repeatable states, export settings, and the publication checklist.
 
 > **Distribution status:** this is a Next.js application with reusable source components,
 > not a published npm library. The npm name `react-video-player` may belong to an unrelated
-> package. No hosted demo is configured; run the landing page locally.
+> package. The demo is configured for GitHub Pages at `/frame-player/`.
 
 ## Quick start
 
@@ -76,17 +76,41 @@ pnpm install
 pnpm dev
 ```
 
-Open **http://localhost:3000**. Do not mix package managers within a checkout.
+Open **http://localhost:3000/frame-player**. Do not mix package managers within a checkout.
 The playground mounts only the selected example. Live toggles change its controls;
 the generated JSX reflects your choices (sample thumbnail cues omitted for readability).
 The bundled HLS fixture is single-rendition VOD, not an adaptive ladder or live broadcast.
 
 ```sh
 npm run build
-npm run start
+# Serve the static export with any static HTTP server (output: out/).
 # If your environment restricts Turbopack worker ports:
 npm run build -- --webpack
 ```
+
+### GitHub Pages media paths
+
+`next.config.ts` defaults to `basePath: "/frame-player"`. The demo uses
+`publicAsset()` for videos, posters, and thumbnails because raw HTML media URLs
+need the same prefix. For example, `public/videos/sample-video.mp4` is requested
+as `/frame-player/videos/sample-video.mp4`, not `/videos/sample-video.mp4`.
+The reusable player accepts caller URLs unchanged, including external URLs.
+
+To host at the domain root instead, build with `NEXT_PUBLIC_BASE_PATH="" npm run build`.
+For another project path, set `NEXT_PUBLIC_BASE_PATH=/your-project` at build time.
+Rebuild after changing this value; the path is embedded in the exported app.
+
+Both bundled samples are 9.92-second, silent H.264 (`yuv420p`) videos; neither
+contains an audio track. The HLS playlist references the five adjacent `.ts`
+segments using relative URLs. No media re-encoding is needed for this path fix.
+The deployed MP4, playlist, and segments should return `200` with `video/mp4`,
+`application/vnd.apple.mpegurl`, and `video/mp2t`, respectively.
+
+When playback fails, the player logs the browser's media error code/message,
+resolved source URL, and network/readiness state to the console. Fatal HLS
+errors log their type, details, and response. The player shows a readable alert
+with **Try again**, which reloads the source and requests playback. Check the
+Network panel for an HTML 404 response if a media URL reports a format error.
 
 ## Use in your Next.js project
 

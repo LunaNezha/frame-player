@@ -90,6 +90,7 @@ describe("HLS playback", () => {
   });
 
   it("reports fatal HLS errors", async () => {
+    const log = jest.spyOn(console, "error").mockImplementation(() => {});
     render(<VideoPlayer sources={sources} />);
     await waitFor(() => expect(mockHls.on).toHaveBeenCalledTimes(2));
     const handleError = mockHls.on.mock.calls.find(
@@ -99,8 +100,16 @@ describe("HLS playback", () => {
       handleError("hlsError", { fatal: true, details: "networkError" }),
     );
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "HLS playback failed: networkError",
+      "The video stream could not be loaded",
     );
+    expect(log).toHaveBeenCalledWith(
+      "[Frame Player] Fatal HLS error",
+      expect.objectContaining({ src: sources[0].src, details: "networkError" }),
+    );
+    act(() => screen.getByRole("button", { name: "Try again" }).click());
+    await waitFor(() => expect(mockHls.attachMedia).toHaveBeenCalledTimes(2));
+    expect(mockHls.destroy).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("offers only manifest qualities and switches between manual and Auto levels", async () => {

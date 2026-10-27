@@ -1,9 +1,14 @@
 import type { NextConfig } from "next";
 
+const basePath = (process.env.NEXT_PUBLIC_BASE_PATH ?? "/frame-player").replace(
+  /\/+$/,
+  "",
+);
+
 const nextConfig: NextConfig = {
   output: "export",
-  basePath: "/frame-player",
-  assetPrefix: "/frame-player/",
+  basePath,
+  env: { NEXT_PUBLIC_BASE_PATH: basePath },
   images: {
     unoptimized: true,
   },

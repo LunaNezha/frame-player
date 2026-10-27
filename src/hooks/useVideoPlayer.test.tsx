@@ -88,6 +88,52 @@ describe("video player", () => {
     expect(onError).toHaveBeenCalledWith("Playback denied");
   });
 
+  it.each([1, 2, 3, 4])(
+    "logs media error code %s and lets the user retry",
+    async (code) => {
+      const log = jest.spyOn(console, "error").mockImplementation(() => {});
+      const onError = jest.fn();
+      render(
+        <VideoPlayer title="Test video" sources={sources} onError={onError} />,
+      );
+      const video = getVideo();
+      Object.defineProperty(video, "error", {
+        configurable: true,
+        value: { code, message: "MEDIA_ELEMENT_ERROR: Format error" },
+      });
+      fireEvent.error(video);
+      expect(log).toHaveBeenCalledWith(
+        "[Frame Player] Media element error",
+        expect.objectContaining({
+          code,
+          message: video.error?.message,
+          src: video.src,
+        }),
+      );
+      expect(screen.getByRole("alert")).not.toHaveTextContent(
+        "MEDIA_ELEMENT_ERROR",
+      );
+      expect(onError).toHaveBeenCalledWith(expect.any(String));
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Play video" }),
+      ).not.toBeInTheDocument();
+      const loads = jest.mocked(HTMLMediaElement.prototype.load).mock.calls
+        .length;
+      Object.defineProperty(video, "error", {
+        configurable: true,
+        value: null,
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(loads + 2);
+      fireEvent.loadedMetadata(video);
+      await waitFor(() =>
+        expect(HTMLMediaElement.prototype.play).toHaveBeenCalled(),
+      );
+    },
+  );
+
   it("unmutes without losing the configured volume", () => {
     render(
       <VideoPlayer title="Test video" sources={sources} initialVolume={0.6} />,

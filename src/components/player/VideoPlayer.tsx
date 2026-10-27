@@ -195,7 +195,7 @@ export default function VideoPlayer(props: VideoPlayerProps) {
           {state.isPlaying ? "NOW PLAYING" : "PRESS PLAY"}
         </span>
       </div>
-      {!state.isPlaying && !feedback && !state.isLoading && (
+      {!state.isPlaying && !feedback && !state.isLoading && !state.error && (
         <button
           type="button"
           aria-label="Play video"
@@ -307,9 +307,12 @@ export default function VideoPlayer(props: VideoPlayerProps) {
         </div>
       )}
       {state.error && (
-        <p role="alert" className="player-error">
-          {state.error}
-        </p>
+        <div role="alert" className="player-error">
+          <p>{state.error}</p>
+          <button type="button" onClick={controls.retry}>
+            Try again
+          </button>
+        </div>
       )}
     </div>
   );

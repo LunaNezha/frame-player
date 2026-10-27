@@ -7,29 +7,30 @@ import type {
   ReactVideoPlayerOptions,
 } from "@/components/player";
 import { SAMPLE_THUMBNAILS } from "@/constants/player";
+import { publicAsset } from "@/utils/publicAsset";
 
 const examples = {
   mp4: {
     label: "Standard MP4",
-    src: "/videos/sample-video.mp4",
+    src: publicAsset("/videos/sample-video.mp4"),
     description:
       "Direct MP4 playback with preview thumbnails. No streaming service required.",
   },
   hls: {
     label: "HLS stream",
-    src: "/videos/hls/sample.m3u8",
+    src: publicAsset("/videos/hls/sample.m3u8"),
     description:
       "A local, single-rendition HLS VOD stream. Native HLS when available, hls.js otherwise. This fixture is not an adaptive quality ladder.",
   },
   styled: {
     label: "Custom styled",
-    src: "/videos/sample-video.mp4",
+    src: publicAsset("/videos/sample-video.mp4"),
     description:
       "The same player, with mint accents, softer corners, and a denser glass surface. No component fork.",
   },
   autoplay: {
     label: "Muted autoplay",
-    src: "/videos/sample-video.mp4",
+    src: publicAsset("/videos/sample-video.mp4"),
     description:
       "Autoplay is requested muted and inline. Your browser may still block it; press play to continue.",
   },
@@ -69,7 +70,8 @@ export function PlayerPlayground() {
           backgroundOpacity: 0.9,
         }
       : undefined;
-  const snippet = `<ReactVideoPlayer\n  src=${JSON.stringify(selected.src)}\n  poster="/images/video-poster.jpg"\n  options={${JSON.stringify({ ...options, thumbnails: undefined }, null, 2)}}${theme ? `\n  theme={${JSON.stringify(theme, null, 2)}}` : ""}\n/>`;
+  const poster = publicAsset("/images/video-poster.jpg");
+  const snippet = `<ReactVideoPlayer\n  src=${JSON.stringify(selected.src)}\n  poster=${JSON.stringify(poster)}\n  options={${JSON.stringify({ ...options, thumbnails: undefined }, null, 2)}}${theme ? `\n  theme={${JSON.stringify(theme, null, 2)}}` : ""}\n/>`;
 
   return (
     <section
@@ -111,7 +113,7 @@ export function PlayerPlayground() {
       <ReactVideoPlayer
         key={example}
         src={selected.src}
-        poster="/images/video-poster.jpg"
+        poster={poster}
         title={example === "mp4" ? "Sample video" : selected.label}
         options={options}
         theme={theme}

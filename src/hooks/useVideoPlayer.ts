@@ -23,6 +23,7 @@ export function useVideoPlayer(options: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const [reloadCount, setReloadCount] = useState(0);
   const [qualityState, setQualityState] = useState<{
     sourceId: string;
     levels: VideoQuality[];
@@ -63,16 +64,42 @@ export function useVideoPlayer(options: VideoPlayerProps) {
     callbacksRef.current.onError?.(message);
   }, []);
 
+  const reportMediaError = useCallback(() => {
+    const video = videoRef.current;
+    const error = video?.error;
+    console.error("[Frame Player] Media element error", {
+      code: error?.code ?? null,
+      message: error?.message ?? "No browser diagnostics available",
+      src: video?.currentSrc || video?.src,
+      networkState: video?.networkState,
+      readyState: video?.readyState,
+    });
+    const messages: Record<number, string> = {
+      1: "Video loading was interrupted. Try again to continue.",
+      2: "The video could not be downloaded. Check your connection and try again.",
+      3: "This video could not be decoded. Try another source or browser.",
+      4: "This video is unavailable or its format is not supported. Try another source or browser.",
+    };
+    reportError(
+      messages[error?.code ?? 0] ??
+        "This video could not be loaded. Check your connection and try again.",
+    );
+  }, [reportError]);
+
   const play = useCallback(async () => {
     try {
       await videoRef.current?.play();
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
+      if (videoRef.current?.error) {
+        reportMediaError();
+        return;
+      }
       reportError(
         error instanceof Error ? error.message : "Playback could not start.",
       );
     }
-  }, [reportError]);
+  }, [reportError, reportMediaError]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -82,7 +109,12 @@ export function useVideoPlayer(options: VideoPlayerProps) {
       if (currentlyPlayingVideo && currentlyPlayingVideo !== video)
         currentlyPlayingVideo.pause();
       currentlyPlayingVideo = video;
-      setState((previous) => ({ ...previous, isPlaying: true, error: null }));
+      setState((previous) => ({
+        ...previous,
+        isPlaying: true,
+        isLoading: false,
+        error: null,
+      }));
       callbacksRef.current.onPlay?.();
     };
     const onPause = () => {
@@ -146,8 +178,6 @@ export function useVideoPlayer(options: VideoPlayerProps) {
       setState((previous) => ({ ...previous, isLoading: true }));
     const onReady = () =>
       setState((previous) => ({ ...previous, isLoading: false }));
-    const onError = () =>
-      reportError(video.error?.message || "This video could not be loaded.");
     const onFullscreenChange = () => {
       setState((previous) => ({
         ...previous,
@@ -165,7 +195,7 @@ export function useVideoPlayer(options: VideoPlayerProps) {
       waiting: onWaiting,
       canplay: onReady,
       playing: onReady,
-      error: onError,
+      error: reportMediaError,
       progress: onProgress,
       loadeddata: onProgress,
       ratechange: onRateChange,
@@ -179,7 +209,7 @@ export function useVideoPlayer(options: VideoPlayerProps) {
       document.removeEventListener("fullscreenchange", onFullscreenChange);
       if (currentlyPlayingVideo === video) currentlyPlayingVideo = null;
     };
-  }, [reportError]);
+  }, [reportMediaError]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -199,6 +229,15 @@ export function useVideoPlayer(options: VideoPlayerProps) {
     if (!video) return;
     let cancelled = false;
     let hls: Hls | undefined;
+    setState((previous) => ({
+      ...previous,
+      error: null,
+      isLoading: true,
+      isPlaying: false,
+      currentTime: 0,
+      duration: 0,
+      buffered: [],
+    }));
     const resume = resumeRef.current;
     resumeRef.current = null;
     const onMetadata = () => {
@@ -226,8 +265,18 @@ export function useVideoPlayer(options: VideoPlayerProps) {
       hls = new HlsPlayer();
       hlsRef.current = hls;
       hls.on(HlsPlayer.Events.ERROR, (_event, data) => {
-        if (data.fatal && !cancelled)
-          reportError(`HLS playback failed: ${data.details}`);
+        if (data.fatal && !cancelled) {
+          console.error("[Frame Player] Fatal HLS error", {
+            src: activeSource.src,
+            type: data.type,
+            details: data.details,
+            error: data.error,
+            response: data.response,
+          });
+          reportError(
+            "The video stream could not be loaded. Check your connection and try again, or choose another source.",
+          );
+        }
       });
       hls.on(HlsPlayer.Events.MANIFEST_PARSED, (_event, data) => {
         if (cancelled) return;
@@ -261,9 +310,20 @@ export function useVideoPlayer(options: VideoPlayerProps) {
       video.removeAttribute("src");
       video.load();
     };
-  }, [activeSource.id, activeSource.src, activeSource.type, play, reportError]);
+  }, [
+    activeSource.id,
+    activeSource.src,
+    activeSource.type,
+    play,
+    reportError,
+    reloadCount,
+  ]);
 
   const controls: VideoPlayerControls = {
+    retry: () => {
+      resumeRef.current = { time: 0, playing: true };
+      setReloadCount((previous) => previous + 1);
+    },
     togglePlay: async () => {
       const video = videoRef.current;
       if (!video) return;

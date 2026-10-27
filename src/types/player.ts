@@ -135,6 +135,7 @@ export interface ReactVideoPlayerProps extends VideoPlayerCallbacks {
 }
 
 export interface VideoPlayerControls {
+  retry: () => void;
   togglePlay: () => Promise<void>;
   seek: (time: number) => void;
   setVolume: (volume: number) => void;

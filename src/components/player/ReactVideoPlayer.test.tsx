@@ -80,6 +80,7 @@ describe("public ReactVideoPlayer API", () => {
     expect(
       screen.queryByRole("button", { name: "Video quality" }),
     ).not.toBeInTheDocument();
+    fireEvent.canPlay(video);
     expect(
       screen.getByRole("button", { name: "Play video" }),
     ).toBeInTheDocument();
